@@ -1,3 +1,4 @@
+/** Signal Ledger design reminder: routes preserve task isolation; each workflow lives on its own named dashboard. */
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
@@ -5,12 +6,20 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import VulnerabilityScan from "./pages/VulnerabilityScan";
+import PasswordChecker from "./pages/PasswordChecker";
+import SecureLogin from "./pages/SecureLogin";
+import PhishingDetection from "./pages/PhishingDetection";
 
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/vulnerability-scan"} component={VulnerabilityScan} />
+      <Route path={"/password-checker"} component={PasswordChecker} />
+      <Route path={"/secure-login"} component={SecureLogin} />
+      <Route path={"/phishing-detection"} component={PhishingDetection} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -27,7 +36,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="light"
+        defaultTheme="dark"
         // switchable
       >
         <TooltipProvider>

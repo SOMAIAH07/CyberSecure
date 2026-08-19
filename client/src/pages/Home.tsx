@@ -1,25 +1,22 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+/** Signal Ledger design reminder: homepage is an offset editorial map into four isolated workstations, not a generic centered product landing page. */
+import { ArrowDownRight, ArrowUpRight, CheckCircle2, LockKeyhole, Radar, SearchCheck, ShieldCheck } from "lucide-react";
+import { Link } from "wouter";
+import LabLayout, { EvidenceTag, SignalMark, TASKS } from "@/components/LabLayout";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
- */
+const cardArt = ["/manus-storage/cybersecure-vulnerability-map_1a5bd03f.jpg", "/manus-storage/cybersecure-password-material_3d2cac75.jpg", "/manus-storage/cybersecure-signal-ledger-hero_be5dde9b.jpg", "/manus-storage/cybersecure-phishing-threads_ad734d75.jpg"];
+const accents = ["#f5b544", "#f5b544", "#f5b544", "#f5b544"];
+
 export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
+    <LabLayout>
+      <div className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+        <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0b1b28] shadow-[0_30px_90px_rgba(0,0,0,0.22)]"><img src="/manus-storage/cybersecure-signal-ledger-hero_be5dde9b.jpg" alt="Abstract security telemetry field" className="absolute inset-0 h-full w-full object-cover opacity-65" /><div className="absolute inset-0 bg-gradient-to-r from-[#07131d] via-[#07131d]/90 to-[#07131d]/20" /><div className="relative grid min-h-[520px] items-end p-6 sm:p-10 lg:grid-cols-[1fr_0.55fr] lg:p-14"><div className="max-w-3xl"><div className="mb-7 flex items-center gap-3"><span className="signal-pin" /><span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#f5b544]">Practical cybersecurity / 04 field exercises</span></div><h1 className="font-display text-5xl font-semibold leading-[0.96] tracking-[-0.06em] text-slate-50 sm:text-6xl lg:text-7xl">Learn the controls by reading the evidence.</h1><p className="mt-7 max-w-xl font-serif text-lg leading-7 text-slate-200">CyberSecure Lab gives each foundational security task its own focused workspace. Work locally, understand the signal, and leave with a concrete defensive next step.</p><div className="mt-9 flex flex-wrap gap-3"><Link href="/vulnerability-scan" className="inline-flex h-12 items-center gap-2 rounded-xl bg-[#f5b544] px-5 text-sm font-semibold text-[#07131d] transition hover:bg-[#ffd06b] active:scale-[0.97]">Begin Task 01 <ArrowDownRight className="h-4 w-4" /></Link><a href="#workstations" className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] px-5 text-sm font-medium text-slate-100 transition hover:border-white/25 hover:bg-white/[0.09]">Explore the lab</a></div></div><div className="mt-10 self-end justify-self-end rounded-2xl border border-white/10 bg-[#07131d]/75 p-5 backdrop-blur sm:mt-0"><div className="flex items-center gap-3"><SignalMark className="h-12 w-12" /><div><p className="text-sm font-semibold">Signal Ledger</p><p className="mt-0.5 text-xs text-slate-400">A contained workspace for new defenders</p></div></div><div className="mt-5 flex items-center gap-2 border-t border-white/10 pt-4"><EvidenceTag tone="good">4 local workflows</EvidenceTag><EvidenceTag tone="neutral">No external probing</EvidenceTag></div></div></div></section>
+
+        <section id="workstations" className="scroll-mt-6 py-12 lg:py-16"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#f5b544]">Choose a workstation</p><h2 className="mt-3 max-w-xl font-display text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">Four tasks. Four deliberate environments.</h2></div><p className="max-w-sm font-serif text-sm leading-6 text-slate-400">Each dashboard contains only the tools relevant to its task, so the learning context stays clear and the workflow remains contained.</p></div><div className="mt-8 grid gap-4 md:grid-cols-2">{TASKS.map((task, index) => { const Icon = task.icon; return <Link key={task.path} href={task.path} className="group relative min-h-[245px] overflow-hidden rounded-2xl border border-white/10 bg-[#0b1b28] p-6 transition duration-200 hover:-translate-y-1 hover:border-white/25 hover:shadow-[0_18px_50px_rgba(0,0,0,0.2)]"><img src={cardArt[index]} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25 transition duration-300 group-hover:scale-[1.04] group-hover:opacity-35" /><div className="absolute inset-0 bg-gradient-to-br from-[#0b1b28]/98 via-[#0b1b28]/85 to-[#0b1b28]/30" /><div className="relative flex h-full flex-col"><div className="flex items-start justify-between"><span className="rounded-lg border border-white/10 bg-[#07131d]/70 px-2.5 py-1 font-mono text-[11px] text-slate-400">TASK_{task.index}</span><span className="flex h-10 w-10 items-center justify-center rounded-xl border" style={{ color: accents[index], borderColor: `${accents[index]}44`, backgroundColor: `${accents[index]}18` }}><Icon className="h-5 w-5" /></span></div><div className="mt-auto"><h3 className="font-display text-2xl font-semibold tracking-[-0.04em] text-slate-50">{task.name}</h3><p className="mt-2 max-w-sm font-serif text-sm leading-6 text-slate-300">{task.description}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-medium" style={{ color: accents[index] }}>Open isolated dashboard <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></span></div></div></Link>; })}</div></section>
+
+        <section className="border-y border-white/10 py-10"><div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]"><div><p className="font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500">How the lab behaves</p><h2 className="mt-3 font-display text-3xl font-semibold tracking-[-0.045em]">A safe space to develop a defensive instinct.</h2></div><div className="grid gap-4 sm:grid-cols-3">{[{ icon: ShieldCheck, title: "Contained", copy: "Exercises are deterministic local simulations with clear practice boundaries." }, { icon: LockKeyhole, title: "Private", copy: "Typed practice passwords and identity state remain within the current browser session." }, { icon: CheckCircle2, title: "Actionable", copy: "Each report pairs a visible signal with a foundational improvement step." }].map((item) => { const Icon = item.icon; return <div key={item.title} className="rounded-xl border border-white/10 bg-white/[0.025] p-4"><Icon className="h-4 w-4 text-[#f5b544]" /><h3 className="mt-5 text-sm font-semibold">{item.title}</h3><p className="mt-2 font-serif text-sm leading-5 text-slate-400">{item.copy}</p></div>; })}</div></div></section>
+        <footer className="flex flex-col justify-between gap-4 py-8 text-xs text-slate-500 sm:flex-row"><p>CyberSecure Lab — defensive learning workflows, designed for local practice.</p><p className="font-mono">SYSTEM_STATE: READY / SCOPE: CONTROLLED</p></footer>
+      </div>
+    </LabLayout>
   );
 }

@@ -1,0 +1,53 @@
+/** Signal Ledger design reminder: present phishing review as cautious evidence triage—no links are opened, and rose is reserved for anomaly signals. */
+import { useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle2, ScanSearch, SearchCheck, ShieldAlert } from "lucide-react";
+import LabLayout, { EvidenceTag, TASKS, ToolExit, WorkspaceHeader } from "@/components/LabLayout";
+
+type Signal = { label: string; detail: string; risk: "low" | "medium" | "high" };
+function inspectUrl(value: string): Signal[] {
+  const signals: Signal[] = [];
+  const raw = value.trim();
+  if (!raw) return signals;
+  try {
+    const normalized = /^(https?:\/\/)/i.test(raw) ? raw : `https://${raw}`;
+    const parsed = new URL(normalized);
+    const host = parsed.hostname.toLowerCase();
+    if (parsed.protocol === "http:") signals.push({ label: "Unencrypted transport", detail: "The sample uses HTTP rather than HTTPS.", risk: "medium" });
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) signals.push({ label: "Raw IP address", detail: "The destination is represented by an IP address instead of a familiar domain.", risk: "high" });
+    if (host.includes("xn--")) signals.push({ label: "Internationalized domain encoding", detail: "Punycode can be legitimate, but it deserves careful visual inspection.", risk: "medium" });
+    if (host.split(".").length > 4) signals.push({ label: "Deep subdomain chain", detail: "Long subdomain chains can obscure the registered domain.", risk: "medium" });
+    if (parsed.port && !["80", "443"].includes(parsed.port)) signals.push({ label: "Unusual port", detail: `The link declares port ${parsed.port}, which is not a conventional web port.`, risk: "medium" });
+    if (/@/.test(raw)) signals.push({ label: "At-sign pattern", detail: "An at-sign in a URL can make the true destination harder to read.", risk: "high" });
+    if (/(verify|secure|login|update|wallet|account|signin)/i.test(`${host}${parsed.pathname}`)) signals.push({ label: "Credential-pressure wording", detail: "The URL uses terms often found in account-verification lures.", risk: "low" });
+  } catch { signals.push({ label: "Malformed URL", detail: "The supplied text does not parse as a standard web address.", risk: "medium" }); }
+  return signals;
+}
+function inspectEmail(value: string): Signal[] {
+  const signals: Signal[] = []; const text = value.toLowerCase(); if (!text.trim()) return signals;
+  if (/(urgent|immediately|within 24|suspended|final warning|act now)/.test(text)) signals.push({ label: "Urgency pressure", detail: "The message presses for a rapid decision rather than informed review.", risk: "medium" });
+  if (/(password|verification code|one-time code|bank details|gift card|crypto)/.test(text)) signals.push({ label: "Sensitive request", detail: "The text asks for information or a payment method that should be handled through a trusted channel.", risk: "high" });
+  if (/(dear customer|dear user|valued customer)/.test(text)) signals.push({ label: "Generic salutation", detail: "The message does not identify the intended recipient specifically.", risk: "low" });
+  if (/(bit\.ly|tinyurl|t\.co|click here)/.test(text)) signals.push({ label: "Destination obscured", detail: "The message asks the reader to use an abbreviated or non-descriptive link.", risk: "medium" });
+  if (/(winner|refund|inheritance|unusual sign-in)/.test(text)) signals.push({ label: "Social-engineering lure", detail: "The wording uses a common emotional hook associated with deceptive messages.", risk: "low" });
+  return signals;
+}
+
+export default function PhishingDetection() {
+  const [mode, setMode] = useState<"url" | "email">("url");
+  const [value, setValue] = useState("");
+  const [analyzed, setAnalyzed] = useState(false);
+  const signals = useMemo(() => mode === "url" ? inspectUrl(value) : inspectEmail(value), [mode, value]);
+  const riskScore = signals.reduce((total, item) => total + (item.risk === "high" ? 3 : item.risk === "medium" ? 2 : 1), 0);
+  const suspicious = riskScore >= 3;
+  function loadSample() { setValue(mode === "url" ? "http://verify-account.login.example-security.test:8080/secure?user=student" : "Dear customer, your account will be suspended within 24 hours. Click here to verify your password and claim your refund."); setAnalyzed(false); }
+  return (
+    <LabLayout task={TASKS[3]}>
+      <WorkspaceHeader task={TASKS[3]} eyebrow="Message triage / passive inspection" title="Slow down the signal. Read the intent." description="Review a URL or message for common deception patterns. This workspace never opens the submitted link, sends a request, or shares the content outside your browser—it only interprets visible text patterns." status={<><SearchCheck className="h-4 w-4 text-rose-300" /><div><p className="text-[10px] uppercase tracking-[0.15em] text-slate-500">Review mode</p><p className="text-sm font-medium text-slate-200">Passive & local</p></div></>} />
+      <div className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1b28] shadow-[0_24px_70px_rgba(0,0,0,0.18)]"><div className="grid xl:grid-cols-[1.12fr_0.88fr]"><div className="p-6 sm:p-8"><div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/10 pb-6"><div><p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#f5b544]">01 / inspect the visible content</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">Choose an evidence source</h2></div><div className="flex rounded-lg border border-white/10 bg-[#07131d] p-1"><button type="button" onClick={() => { setMode("url"); setAnalyzed(false); }} className={`rounded-md px-3 py-1.5 text-xs transition ${mode === "url" ? "bg-white/10 text-slate-100" : "text-slate-500 hover:text-slate-300"}`}>URL</button><button type="button" onClick={() => { setMode("email"); setAnalyzed(false); }} className={`rounded-md px-3 py-1.5 text-xs transition ${mode === "email" ? "bg-white/10 text-slate-100" : "text-slate-500 hover:text-slate-300"}`}>Email text</button></div></div><label className="mt-7 block"><span className="mb-2 block text-xs font-medium text-slate-300">{mode === "url" ? "URL to inspect" : "Email text to inspect"}</span>{mode === "url" ? <input value={value} onChange={(event) => { setValue(event.target.value); setAnalyzed(false); }} placeholder="https://example.test/path" className="h-12 w-full rounded-xl border border-white/10 bg-[#07131d] px-4 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-[#f5b544]/60 focus:ring-2 focus:ring-[#f5b544]/15" /> : <textarea value={value} onChange={(event) => { setValue(event.target.value); setAnalyzed(false); }} placeholder="Paste only the message content you want to review..." className="min-h-32 w-full resize-y rounded-xl border border-white/10 bg-[#07131d] p-4 text-sm leading-6 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-[#f5b544]/60 focus:ring-2 focus:ring-[#f5b544]/15" />}</label><div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={() => setAnalyzed(true)} disabled={!value.trim()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#f5b544] px-4 text-sm font-semibold text-[#07131d] transition hover:bg-[#ffd06b] active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"><ScanSearch className="h-4 w-4" /> Review indicators</button><button type="button" onClick={loadSample} className="h-11 rounded-xl border border-white/10 px-4 text-sm text-slate-300 transition hover:border-white/20 hover:bg-white/[0.04]">Load training sample</button></div></div><div className="relative min-h-[260px] border-t border-white/10 bg-[#06121b] xl:border-l xl:border-t-0"><img src="/manus-storage/cybersecure-phishing-threads_ad734d75.jpg" alt="Abstract message and URL analysis paths" className="absolute inset-0 h-full w-full object-cover opacity-65" /><div className="absolute inset-0 bg-gradient-to-t from-[#06121b] via-[#06121b]/20 to-transparent" /><div className="absolute bottom-6 left-6 right-6 rounded-xl border border-white/10 bg-[#06121b]/75 p-4 backdrop-blur"><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f5b544]">Safety boundary</p><p className="mt-2 font-serif text-sm leading-5 text-slate-200">Treat the result as a prompt to verify through an independent, trusted channel—not as an automatic final verdict.</p></div></div></div></section>
+        {analyzed && <section className="mt-7 animate-[fade-up_0.28s_var(--ease-out)_both]"><div className="mb-5 flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-[11px] uppercase tracking-[0.16em] text-rose-300">02 / indicator report</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">{suspicious ? "Suspicious indicators detected" : "No strong local indicators found"}</h2></div><EvidenceTag tone={suspicious ? "risk" : "good"}>{suspicious ? `Risk score ${riskScore}` : "Review complete"}</EvidenceTag></div>{signals.length ? <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">{signals.map((signal, index) => <article key={signal.label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"><div className="flex items-center justify-between"><span className="font-mono text-xs text-slate-500">0{index + 1}</span><EvidenceTag tone={signal.risk === "high" ? "risk" : signal.risk === "medium" ? "warn" : "info"}>{signal.risk}</EvidenceTag></div><h3 className="mt-5 text-[16px] font-semibold text-slate-100">{signal.label}</h3><p className="mt-2 font-serif text-sm leading-6 text-slate-400">{signal.detail}</p></article>)}</div> : <div className="flex gap-3 rounded-xl border border-emerald-300/15 bg-emerald-300/[0.055] p-5"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" /><div><p className="font-medium text-emerald-100">No pattern matches in this simple local pass.</p><p className="mt-1 font-serif text-sm leading-5 text-slate-400">That does not prove a message is legitimate. Independently verify the sender and destination before acting on an account request.</p></div></div>}<div className="mt-5 flex gap-3 rounded-xl border border-[#f5b544]/20 bg-[#f5b544]/[0.06] p-4"><ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[#f5b544]" /><p className="text-sm leading-5 text-[#ffe3a2]">Next action: do not reply, share credentials, or use the supplied path. Find the organization’s contact details independently and verify the request through that channel.</p></div></section>}
+        <ToolExit />
+      </div>
+    </LabLayout>
+  );
+}
